@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
 
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
@@ -73,8 +74,14 @@ public final class QuoteSyncJob {
 
 
                 Stock stock = quotes.get(symbol);
+                if (stock == null) {
+                    continue;
+                }
                 StockQuote quote = stock.getQuote();
 
+                if(quote.getPrice() == null || quote.getChange()==null){
+                    continue;
+                }
                 float price = quote.getPrice().floatValue();
                 float change = quote.getChange().floatValue();
                 float percentChange = quote.getChangeInPercent().floatValue();
@@ -87,6 +94,9 @@ public final class QuoteSyncJob {
 
                 for (HistoricalQuote it : history) {
                     historyBuilder.append(it.getDate().getTimeInMillis());
+                    Log.d("hq ", "historical quote " + it);
+                    Log.d("hq ", "historical quote getDate" + it.getDate().getTimeInMillis());
+                    Log.d("hq ", "historical quote close" + it.getClose());
                     historyBuilder.append(", ");
                     historyBuilder.append(it.getClose());
                     historyBuilder.append("\n");
@@ -100,6 +110,7 @@ public final class QuoteSyncJob {
 
 
                 quoteCV.put(Contract.Quote.COLUMN_HISTORY, historyBuilder.toString());
+                Log.d("hq final", "hq final is "+ historyBuilder.toString());
 
                 quoteCVs.add(quoteCV);
 
