@@ -38,5 +38,6 @@
     <string name="stock_name" translatable="false">Stock Name</string>
     <string name="price" translatable="false">Price</string>
     <string name="percentage_change" translatable="false">Percentage Change</string>
+    <string name="title_activity_graph">GraphActivity</string>
 
 </resources>

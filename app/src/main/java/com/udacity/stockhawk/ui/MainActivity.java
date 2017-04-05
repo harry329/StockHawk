@@ -1,6 +1,8 @@
 package com.udacity.stockhawk.ui;
 
+import android.content.AsyncQueryHandler;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -13,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -43,17 +46,21 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @BindView(R.id.error)
     TextView error;
     private StockAdapter adapter;
-
+    private AsyncQueryHandler mAsyncQueryHandler;
     @Override
     public void onClick(String symbol) {
         Timber.d("Symbol clicked: %s", symbol);
+        String[] projections = {"history"};
+        String selection = Contract.Quote.COLUMN_SYMBOL + " = ?";
+        String[] selectionargs = {symbol};
+        mAsyncQueryHandler.startQuery(1,null,Contract.Quote.URI,projections,selection,selectionargs,null);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
+        initiateAsyncQueryHandler();
         ButterKnife.bind(this);
 
         adapter = new StockAdapter(this, this);
@@ -118,7 +125,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     void addStock(String symbol) {
         if (symbol != null && !symbol.isEmpty()) {
-
             if (networkUp()) {
                 swipeRefreshLayout.setRefreshing(true);
             } else {
@@ -185,5 +191,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void initiateAsyncQueryHandler() {
+        mAsyncQueryHandler = new AsyncQueryHandler(getContentResolver()) {
+            @Override
+            protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+                cursor.moveToFirst();
+                Log.d("cursor return "," " + cursor.getString(cursor.getColumnIndex(Contract.Quote.COLUMN_HISTORY)));
+                super.onQueryComplete(token, cookie, cursor);
+                Intent intent = new Intent(getBaseContext(),GraphActivity.class);
+                getBaseContext().startActivity(intent);
+            }
+        };
     }
 }
