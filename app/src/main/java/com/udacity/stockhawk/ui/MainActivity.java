@@ -15,7 +15,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -53,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         String[] projections = {"history"};
         String selection = Contract.Quote.COLUMN_SYMBOL + " = ?";
         String[] selectionargs = {symbol};
+        //starting query for history data
         mAsyncQueryHandler.startQuery(1,null,Contract.Quote.URI,projections,selection,selectionargs,null);
     }
 
@@ -197,10 +197,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         mAsyncQueryHandler = new AsyncQueryHandler(getContentResolver()) {
             @Override
             protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
-                cursor.moveToFirst();
-                Log.d("cursor return "," " + cursor.getString(cursor.getColumnIndex(Contract.Quote.COLUMN_HISTORY)));
                 super.onQueryComplete(token, cookie, cursor);
-                Intent intent = new Intent(getBaseContext(),GraphActivity.class);
+                cursor.moveToFirst();
+                //start GraphActivity
+                Intent intent = GraphActivity.getGraphIntent(getBaseContext(),cursor.getString(cursor.getColumnIndex(Contract.Quote.COLUMN_HISTORY)));
                 getBaseContext().startActivity(intent);
             }
         };
